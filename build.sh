@@ -2,7 +2,7 @@
 # exit on error
 set -o errexit
 
-# Set the environment variable if not already set
+# Set the environment variable if not already set - ok
 export PUPPETEER_CACHE_DIR=${PUPPETEER_CACHE_DIR:-/opt/render/project/puppeteer}
 
 npm install
