@@ -1,8 +1,12 @@
 #!/usr/bin/env bash
-# exit on errorset -o errexit
+# exit on error
+set -o errexit
+
+# Set the environment variable if not already set
+export PUPPETEER_CACHE_DIR=${PUPPETEER_CACHE_DIR:-/opt/render/project/puppeteer}
 
 npm install
-# npm run build # uncomment if required
+# npm run build # Uncomment this line if you have a build step
 
 # Store/pull Puppeteer cache with build cache
 if [[ ! -d $PUPPETEER_CACHE_DIR ]]; then 
