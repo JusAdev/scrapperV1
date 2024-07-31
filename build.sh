@@ -4,9 +4,13 @@ set -o errexit
 
 # Set the environment variable if not already set
 export PUPPETEER_CACHE_DIR=${PUPPETEER_CACHE_DIR:-/opt/render/project/puppeteer}
+export XDG_CACHE_HOME=${XDG_CACHE_HOME:-/opt/render/.cache}
 
+# Install Node.js dependencies
 npm install
-# npm run build # Uncomment this line if you have a build step
+
+# Install Puppeteer browsers
+npx puppeteer browsers install
 
 # Ensure the Puppeteer cache directory exists
 mkdir -p $PUPPETEER_CACHE_DIR
