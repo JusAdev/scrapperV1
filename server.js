@@ -5,6 +5,8 @@ const path = require('path');
 const app = express();
 const PORT = 4000;
 
+require("dotenv").config();
+
 // Middleware to log each request
 app.use((req, res, next) => {
   console.log(`Request URL: ${req.url}`);
@@ -26,7 +28,14 @@ app.post('/scrape', async (req, res) => {
 
   try {
     // Using Puppeteer to handle dynamic content
-    const browser = await puppeteer.launch();
+    const browser = await puppeteer.launch({
+      args: [
+        "--disable-setuid-sandbox",
+        "--no-sandbox",
+        "--single-process",
+        "--no-zygote",
+      ]
+    });
     const page = await browser.newPage();
     await page.goto(url, { waitUntil: 'networkidle2' });
 
