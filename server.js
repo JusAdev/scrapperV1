@@ -3,62 +3,45 @@ const puppeteer = require('puppeteer');
 const path = require('path');
 
 const app = express();
-const PORT = 38716;
-
-
-
-// Middleware to log each request
-app.use((req, res, next) => {
-  console.log(`Request URL: ${req.url}`);
-  next();
-});
+const port = process.env.PORT || 3000;
 
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 
 app.post('/scrape', async (req, res) => {
-  const url = req.body.url;
-  const selector = req.body.selector;
-  console.log(`Scraping URL: ${url} with selector: ${selector}`);
-
+  const { url, selector } = req.body;
+  
   if (!url || !selector) {
-    console.error('URL or selector not provided');
-    return res.send('Please provide both a URL and a CSS selector');
+    return res.status(400).json({ error: 'Missing URL or selector' });
   }
 
   try {
-    // Using Puppeteer to handle dynamic content
-    const browser = await puppeteer.launch({
-      args: [
-        "--disable-setuid-sandbox",
-        "--no-sandbox",
-        "--single-process",
-        "--no-zygote",
-      ]
-    });
+    const browser = await puppeteer.launch();
     const page = await browser.newPage();
-    await page.goto(url, { waitUntil: 'networkidle2' });
+    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 160000 }); // Increased timeout to 60 seconds
 
-    const content = await page.evaluate((selector) => {
+    // Wait for the element to appear on the page
+    await page.waitForSelector(selector, { timeout: 160000 }); // Increased timeout to 60 seconds
+
+    // Extract the content of the element
+    const result = await page.evaluate(selector => {
       const element = document.querySelector(selector);
-      return element ? element.innerText.trim() : null;
+      return element ? element.innerText : null;
     }, selector);
 
     await browser.close();
 
-    if (content) {
-      console.log(`Content found: ${content}`);
-      return res.send(`Content: ${content}`);
+    if (result) {
+      res.json({ result });
     } else {
-      console.log('Content not found');
-      return res.send('Content not found');
+      res.status(404).json({ error: 'Element not found' });
     }
   } catch (error) {
-    console.error(`Error fetching the URL: ${error.message}`);
-    return res.send(`Error fetching the URL: ${error.message}`);
+    console.error('Error fetching the URL:', error);
+    res.status(500).json({ error: 'Error fetching the URL', details: error.message });
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+app.listen(port, () => {
+  console.log(`Server running at http://localhost:${port}`);
 });
