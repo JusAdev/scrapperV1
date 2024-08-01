@@ -3,7 +3,9 @@ const puppeteer = require('puppeteer');
 const path = require('path');
 
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 38716;
+
+require('dotenv').config();
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
@@ -16,7 +18,18 @@ app.post('/scrape', async (req, res) => {
   }
 
   try {
-    const browser = await puppeteer.launch();
+    const browser = await puppeteer.launch({
+      args: [
+        "--disable-setuid-sandbox",
+        "--no-sandbox",
+        "--single-process",
+        "--no-zygote",
+      ],
+      executablePath:
+        process.env.NODE_ENV === "production"
+          ? process.env.PUPPETEER_EXECUTABLE_PATH
+          : puppeteer.executablePath(),
+    });
     const page = await browser.newPage();
     await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 160000 }); // Increased timeout to 60 seconds
 
