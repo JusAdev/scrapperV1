@@ -5,7 +5,7 @@ const path = require('path');
 const app = express();
 const PORT = 4000;
 
-require("dotenv").config();
+
 
 // Middleware to log each request
 app.use((req, res, next) => {
